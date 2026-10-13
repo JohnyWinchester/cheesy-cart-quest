@@ -15,5 +15,5 @@
 - No inline `style={{}}`; all styling through Tailwind utility classes — keeps theming and dark mode working.
 - When creating or changing a file, output the complete file, never abbreviated with comments like "// остальной код".
 - Write new components as TypeScript `.tsx` even when the request names `.jsx`, and keep the page entry in `src/routes/index.tsx` — the project is TanStack Start, which has no `App.jsx`.
-- Product data stays in `src/data/mockData.ts`, cart logic in `src/hooks/useCart.ts`; components in `src/components` receive data and callbacks as props rather than calling the hook themselves.
+- Product data stays in `src/data/mockData.ts`. Cart state lives in one shared context provider exported from the cart hook and mounted once in the root route, so any component may call `useCart()` and stay in sync — two independent calls to a local-state hook would show two different carts. Presentational components (catalog, product cards, cart rows) still take data and callbacks as props.
 
