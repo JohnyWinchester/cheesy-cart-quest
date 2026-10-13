@@ -2,9 +2,10 @@ import { ShoppingCart } from "lucide-react";
 
 interface HeaderProps {
   cartCount: number;
+  onCartClick: () => void;
 }
 
-export function Header({ cartCount }: HeaderProps) {
+export function Header({ cartCount, onCartClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-background">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
@@ -14,6 +15,7 @@ export function Header({ cartCount }: HeaderProps) {
         <button
           type="button"
           aria-label="Корзина"
+          onClick={onCartClick}
           className="relative rounded-md p-2 text-foreground transition-colors hover:bg-accent"
         >
           <ShoppingCart size={24} />

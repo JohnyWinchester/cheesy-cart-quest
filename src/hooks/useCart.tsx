@@ -1,14 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Product } from "@/data/mockData";
 
-export interface CartItem {
+export interface CartItemData {
   product: Product;
   quantity: number;
 }
 
 const CART_STORAGE_KEY = "pizza-kazan-cart";
 
-function loadCartFromStorage(): CartItem[] {
+function loadCartFromStorage(): CartItemData[] {
   if (typeof window === "undefined") {
     return [];
   }
@@ -24,8 +31,8 @@ function loadCartFromStorage(): CartItem[] {
   }
 }
 
-export function useCart() {
-  const [items, setItems] = useState<CartItem[]>(loadCartFromStorage);
+function useCartStore() {
+  const [items, setItems] = useState<CartItemData[]>(loadCartFromStorage);
 
   useEffect(() => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
@@ -80,4 +87,24 @@ export function useCart() {
   );
 
   return { items, addItem, removeItem, updateQuantity, totalPrice, totalCount };
+}
+
+type CartContextValue = ReturnType<typeof useCartStore>;
+
+const CartContext = createContext<CartContextValue | null>(null);
+
+export function CartProvider({ children }: { children: ReactNode }) {
+  const value = useCartStore();
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+}
+
+export function useCart(): CartContextValue {
+  const value = useContext(CartContext);
+
+  if (!value) {
+    throw new Error("useCart must be used inside <CartProvider>");
+  }
+
+  return value;
 }
