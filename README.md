@@ -21,5 +21,5 @@
 
 1. Клонируйте репозиторий:
    ```bash
-   git clone <url-вашего-репозитория>
+   git clone https://github.com/JohnyWinchester/cheesy-cart-quest
    cd pizza-kazan-mvp
