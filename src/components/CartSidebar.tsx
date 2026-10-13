@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { ShoppingCart, X } from "lucide-react";
 import { CartItem } from "@/components/CartItem";
+import { CheckoutForm } from "@/components/CheckoutForm";
 import { useCart } from "@/hooks/useCart";
 
 interface CartSidebarProps {
@@ -10,16 +12,22 @@ interface CartSidebarProps {
 export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const { items, updateQuantity, removeItem, totalPrice, totalCount } =
     useCart();
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  const handleClose = () => {
+    setIsCheckoutOpen(false);
+    onClose();
+  };
 
   const handleCheckout = () => {
     console.log("Checkout");
-    onClose();
+    setIsCheckoutOpen(true);
   };
 
   return (
     <>
       <div
-        onClick={onClose}
+        onClick={handleClose}
         aria-hidden="true"
         className={
           isOpen
@@ -29,17 +37,17 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       />
 
       <aside
+        aria-label="Корзина"
         className={
           isOpen
             ? "fixed right-0 top-0 z-50 flex h-full w-full max-w-sm translate-x-0 flex-col border-l border-border bg-card shadow-xl transition-transform duration-300"
             : "fixed right-0 top-0 z-50 flex h-full w-full max-w-sm translate-x-full flex-col border-l border-border bg-card shadow-xl transition-transform duration-300"
         }
-        aria-label="Корзина"
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-4">
           <h2 className="text-lg font-semibold text-card-foreground">
-            Корзина
-            {totalCount > 0 && (
+            {isCheckoutOpen ? "Оформление заказа" : "Корзина"}
+            {!isCheckoutOpen && totalCount > 0 && (
               <span className="ml-2 text-sm font-normal text-muted-foreground">
                 ({totalCount})
               </span>
@@ -48,14 +56,16 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
           <button
             type="button"
             aria-label="Закрыть корзину"
-            onClick={onClose}
+            onClick={handleClose}
             className="rounded-md p-2 text-foreground transition-colors hover:bg-accent"
           >
             <X size={20} />
           </button>
         </div>
 
-        {items.length === 0 ? (
+        {isCheckoutOpen ? (
+          <CheckoutForm onContinue={handleClose} />
+        ) : items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
             <span className="rounded-full bg-muted p-4 text-muted-foreground">
               <ShoppingCart size={28} />
@@ -68,34 +78,35 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             </p>
           </div>
         ) : (
-          <ul className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
-            {items.map((item) => (
-              <CartItem
-                key={item.product.id}
-                item={item}
-                onUpdateQuantity={updateQuantity}
-                onRemove={removeItem}
-              />
-            ))}
-          </ul>
-        )}
+          <>
+            <ul className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+              {items.map((item) => (
+                <CartItem
+                  key={item.product.id}
+                  item={item}
+                  onUpdateQuantity={updateQuantity}
+                  onRemove={removeItem}
+                />
+              ))}
+            </ul>
 
-        <div className="border-t border-border px-4 py-4">
-          <div className="mb-4 flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Итого</span>
-            <span className="text-xl font-bold text-card-foreground">
-              {totalPrice} ₽
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={handleCheckout}
-            disabled={items.length === 0}
-            className="w-full rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Оформить заказ
-          </button>
-        </div>
+            <div className="border-t border-border px-4 py-4">
+              <div className="mb-4 flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Итого</span>
+                <span className="text-xl font-bold text-card-foreground">
+                  {totalPrice} ₽
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleCheckout}
+                className="w-full rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                Оформить заказ
+              </button>
+            </div>
+          </>
+        )}
       </aside>
     </>
   );
