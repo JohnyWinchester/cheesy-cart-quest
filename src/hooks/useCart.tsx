@@ -72,6 +72,10 @@ function useCartStore() {
     );
   };
 
+  const clearCart = () => {
+    setItems([]);
+  };
+
   const totalPrice = useMemo(
     () =>
       items.reduce(
@@ -86,7 +90,15 @@ function useCartStore() {
     [items],
   );
 
-  return { items, addItem, removeItem, updateQuantity, totalPrice, totalCount };
+  return {
+    items,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    totalPrice,
+    totalCount,
+  };
 }
 
 type CartContextValue = ReturnType<typeof useCartStore>;
