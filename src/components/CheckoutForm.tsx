@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { CheckCircle2, MapPin } from "lucide-react";
 import { z } from "zod";
 import { useCart } from "@/hooks/useCart";
+import { supabase } from "@/lib/supabaseClient"; // <-- Импортируем клиент Supabase
 
 const phoneDigitCount = (value: string) => value.replace(/\D/g, "").length;
 
@@ -41,10 +42,17 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ onContinue }: CheckoutFormProps) {
-  const { clearCart, totalPrice } = useCart();
+  // ВАЖНО: Убедись, что твой хук useCart возвращает массив товаров под именем 'items'. 
+  // Если он называется 'cartItems' или 'products', поменяй 'items' на нужное название.
+  const { clearCart, totalPrice, items } = useCart(); 
+  
   const [values, setValues] = useState<CheckoutFormValues>(EMPTY_FORM);
   const [showErrors, setShowErrors] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+  
+  // Новые состояния для отправки в Supabase
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const parsed = checkoutSchema.safeParse(values);
   const isValid = parsed.success;
@@ -63,16 +71,48 @@ export function CheckoutForm({ onContinue }: CheckoutFormProps) {
     setValues((currentValues) => ({ ...currentValues, [field]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  // Обновленная функция отправки с интеграцией Supabase
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setShowErrors(true);
+    setSubmitError(null);
 
     if (!parsed.success) {
       return;
     }
 
-    clearCart();
-    setIsOrderPlaced(true);
+    setIsSubmitting(true);
+
+    try {
+      // Формируем объект заказа строго по схеме БД в Supabase
+      const orderData = {
+        customer_name: values.name,
+        customer_phone: values.phone,
+        delivery_address: values.address,
+        items: items, // Массив товаров из корзины (сохранится как JSONB)
+        total_amount: totalPrice,
+        status: 'new'
+      };
+
+      // Отправляем запрос в Supabase
+      const { error } = await supabase
+        .from('orders')
+        .insert([orderData]);
+
+      if (error) {
+        console.error('Ошибка Supabase:', error);
+        throw new Error('Не удалось сохранить заказ в базе данных');
+      }
+
+      // Если всё успешно
+      clearCart();
+      setIsOrderPlaced(true);
+    } catch (err) {
+      console.error(err);
+      setSubmitError('Не удалось оформить заказ. Проверьте соединение и попробуйте снова.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isOrderPlaced) {
@@ -104,6 +144,7 @@ export function CheckoutForm({ onContinue }: CheckoutFormProps) {
       onSubmit={handleSubmit}
       className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4"
     >
+      {/* Поле Имя */}
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-foreground">Имя</span>
         <input
@@ -121,6 +162,7 @@ export function CheckoutForm({ onContinue }: CheckoutFormProps) {
         )}
       </label>
 
+      {/* Поле Телефон */}
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-foreground">Телефон</span>
         <input
@@ -139,6 +181,7 @@ export function CheckoutForm({ onContinue }: CheckoutFormProps) {
         )}
       </label>
 
+      {/* Поле Адрес */}
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-foreground">Адрес</span>
         <input
@@ -158,6 +201,7 @@ export function CheckoutForm({ onContinue }: CheckoutFormProps) {
         )}
       </label>
 
+      {/* Заглушка Яндекс.Карты */}
       <div className="flex h-40 shrink-0 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted px-4 text-center">
         <MapPin size={28} className="text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
@@ -165,6 +209,14 @@ export function CheckoutForm({ onContinue }: CheckoutFormProps) {
         </p>
       </div>
 
+      {/* Сообщение об ошибке отправки */}
+      {submitError && (
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          {submitError}
+        </div>
+      )}
+
+      {/* Итого и кнопка */}
       <div className="mt-auto flex flex-col gap-3 pt-2">
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Итого</span>
@@ -174,10 +226,10 @@ export function CheckoutForm({ onContinue }: CheckoutFormProps) {
         </div>
         <button
           type="submit"
-          disabled={!isValid}
+          disabled={!isValid || isSubmitting}
           className="w-full rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Подтвердить заказ
+          {isSubmitting ? "Оформление..." : "Подтвердить заказ"}
         </button>
       </div>
     </form>
