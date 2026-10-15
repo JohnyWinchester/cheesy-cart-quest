@@ -1,4 +1,4 @@
-import { ShoppingCart } from "lucide-react";
+import { Pizza, ShoppingCart } from "lucide-react";
 
 interface HeaderProps {
   cartCount: number;
@@ -7,16 +7,21 @@ interface HeaderProps {
 
 export function Header({ cartCount, onCartClick }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-10 border-b border-border bg-background">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-        <span className="text-xl font-bold text-foreground">
-          🍕 Пицца Казань
-        </span>
+    <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+        <div className="flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <Pizza size={20} />
+          </span>
+          <span className="text-xl font-bold tracking-tight text-foreground">
+            Пицца Казань
+          </span>
+        </div>
         <button
           type="button"
           aria-label="Корзина"
           onClick={onCartClick}
-          className="relative rounded-md p-2 text-foreground transition-colors hover:bg-accent"
+          className="relative rounded-xl p-2 text-foreground transition-colors hover:bg-accent"
         >
           <ShoppingCart size={24} />
           {cartCount > 0 && (
