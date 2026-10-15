@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Clock, Star } from "lucide-react";
+import { Clock, Pizza, Star } from "lucide-react";
 import { Catalog } from "@/components/Catalog";
 import { CartSidebar } from "@/components/CartSidebar";
 import { Header } from "@/components/Header";
