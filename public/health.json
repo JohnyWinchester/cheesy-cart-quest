@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "service": "pizza-kazan-mvp",
+  "version": "1.0.0",
+  "timestamp": "2026-10-14",
+  "checks": {
+    "frontend": "operational",
+    "supabase": "operational"
+  }
+}
