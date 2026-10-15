@@ -70,7 +70,12 @@ export function HomePage() {
 
       <footer className="border-t border-border py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 text-center">
-          <span className="text-lg font-bold text-foreground">🍕 Пицца Казань</span>
+          <span className="flex items-center gap-2 text-lg font-bold text-foreground">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Pizza size={16} />
+            </span>
+            Пицца Казань
+          </span>
           <p className="text-sm text-muted-foreground">
             Казань, ул. Баумана, 1 · ежедневно с 10:00 до 23:00
           </p>
